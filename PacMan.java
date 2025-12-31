@@ -211,32 +211,41 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
 
     /**
-     * GhostScaredStatus class tracks the scared state of ghosts
-     * When ghosts are scared, they can be eaten by Pac-Man for extra points
+     * GhostScaredStatus class tracks and manages the scared state of ghosts
+     * 
+     * When Pac-Man eats a power pellet, ghosts enter a scared state where they
+     * become vulnerable and can be eaten for extra points. This class manages
+     * the duration and active status of this fear effect on individual ghosts.
+     * 
+     * @author Pac-Man Development Team
+     * @version 1.2
+     * @since 2024
      */
     class GhostScaredStatus {
-        long startTime;          // Timestamp when the scared state started
+        long startTime;          // Timestamp when the scared state began (milliseconds)
         long duration = 15000;   // Duration of the scared state in milliseconds (15 seconds)
 
         /**
-         * GhostScaredStatus constructor
-         * Initializes the startTime to the current system time
+         * Constructor for GhostScaredStatus
+         * Initializes the scared status timer with the current system time
          */
         GhostScaredStatus() {
             this.startTime = System.currentTimeMillis();
         }
 
         /**
-         * Checks if the scared state is still active
-         * @return true if the scared state duration hasn't expired
+         * Verifies if the scared state is currently active
+         * 
+         * @return {@code true} if the scared state duration has not yet expired
          */
         boolean isActive() {
             return System.currentTimeMillis() - startTime < duration;
         }
 
         /**
-         * Gets the remaining time for the scared state
-         * @return Remaining milliseconds (0 if the state is no longer active)
+         * Calculates and returns the remaining time for the scared state
+         * 
+         * @return Remaining time in milliseconds (0 if the state is inactive)
          */
         long getRemainingTime() {
             long remaining = duration - (System.currentTimeMillis() - startTime);
@@ -245,26 +254,33 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
     
     /**
-     * Trap class represents a trap that can be placed on the board
-     * Traps have various effects on game entities that come into contact
-     * with them
+     * Trap class defines and manages all in-game traps
+     * 
+     * Traps are interactive elements that can be placed on the game board
+     * to affect entities. Different trap types produce different effects on
+     * Pac-Man, ghosts, or other game characters.
+     * 
+     * @author Pac-Man Development Team
+     * @version 1.2
+     * @since 2024
      */
     class Trap {
-        int x;          // X-coordinate of the trap
-        int y;          // Y-coordinate of the trap
-        int width;      // Width of the trap
-        int height;     // Height of the trap
-        long startTime; // Timestamp when the trap was created
-        long duration;  // Duration of the trap in milliseconds
-        boolean isActive; // Whether the trap is currently active
-        String type;    // Type of trap ("spider" or "ice")
+        int x;          // X-coordinate of the trap on the game board
+        int y;          // Y-coordinate of the trap on the game board
+        int width;      // Width of the trap in pixels
+        int height;     // Height of the trap in pixels
+        long startTime; // Timestamp when the trap was placed
+        long duration;  // Duration the trap remains active (milliseconds)
+        boolean isActive; // Flag indicating if the trap is currently active
+        String type;    // Type identifier for the trap ("spider" or "ice")
         
         /**
-         * Trap constructor
-         * @param x Initial X-coordinate
-         * @param y Initial Y-coordinate
+         * Trap constructor - Creates a new trap instance
+         * 
+         * @param x X-coordinate where the trap is placed
+         * @param y Y-coordinate where the trap is placed
          * @param duration Duration the trap remains active
-         * @param type Type of trap
+         * @param type Type of trap ("spider" for entanglement, "ice" for freezing)
          */
         Trap(int x, int y, long duration, String type) {
             this.x = x;
@@ -278,8 +294,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         
         /**
-         * Checks if the trap is still active
-         * @return true if the trap duration hasn't expired
+         * Checks the active status of the trap
+         * 
+         * @return {@code true} if the trap is still active and hasn't expired
          */
         boolean isActive() {
             if (!isActive) return false;
@@ -291,18 +308,19 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         
         /**
-         * Draws the trap on the game board
-         * @param g Graphics context used for drawing
+         * Renders the trap on the game screen
+         * 
+         * @param g Graphics context used for drawing the trap
          */
         void draw(Graphics g) {
             if (!isActive()) return;
             
             if (type.equals("spider")) {
-                // Draw spider silk trap with green translucent color
+                // Draw spider silk trap with translucent green effect
                 g.setColor(new Color(0, 255, 0, 100));
                 g.fillRect(x, y, width, height);
             } else if (type.equals("ice")) {
-                // Draw ice shadow trap with blue translucent color
+                // Draw ice shadow trap with translucent blue effect
                 g.setColor(new Color(0, 0, 255, 100));
                 g.fillRect(x, y, width, height);
             }
@@ -310,16 +328,24 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
     
     /**
-     * FrozenStatus class represents the frozen effect applied to entities by ice traps
-     * Frozen entities have their movement speed reduced significantly
+     * FrozenStatus class tracks the ice shadow trap effect ("Frozen Trap")
+     * 
+     * When Pac-Man encounters an ice trap, he becomes frozen for a configurable
+     * duration. If the freeze is not broken by pressing the 'V' key within 10 seconds,
+     * Pac-Man will die. This class manages this critical game mechanic.
+     * 
+     * @author Pac-Man Development Team
+     * @version 1.2
+     * @since 2024
      */
     class FrozenStatus {
         long startTime; // Timestamp when the frozen effect started
-        long duration;  // Duration of the frozen effect in milliseconds
+        long duration;  // Duration of the frozen state in milliseconds
         
         /**
          * FrozenStatus constructor
-         * @param duration Duration the effect will last
+         * 
+         * @param duration Duration the freezing effect will last
          */
         FrozenStatus(long duration) {
             this.startTime = System.currentTimeMillis();
@@ -328,32 +354,33 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         
         /**
          * Checks if the frozen effect is still active
-         * @return true if the effect duration hasn't expired
+         * 
+         * @return {@code true} if the freeze duration hasn't expired
          */
         boolean isActive() {
             return System.currentTimeMillis() - startTime < duration;
         }
-        
-        /**
-         * Gets the speed multiplier for frozen entities
-         * @return Speed multiplier (1/3 while frozen, 1 otherwise)
-         */
-        double getSpeedMultiplier() {
-            return isActive() ? 1.0 / 3.0 : 1.0; // Ice trap effect: speed reduced to 1/3
-        }
     }
     
     /**
-     * EntangledStatus class represents the entangled effect applied to entities by spider traps
-     * Entangled entities may have movement restrictions or other penalties
+     * EntangledStatus class manages the entanglement effect from spider traps
+     * 
+     * This effect limits movement capabilities of affected entities. Entangled
+     * entities typically experience restricted mobility or other penalties until
+     * the effect duration expires.
+     * 
+     * @author Pac-Man Development Team
+     * @version 1.2
+     * @since 2024
      */
     class EntangledStatus {
-        long startTime; // Timestamp when the entangled effect started
-        long duration;  // Duration of the entangled effect in milliseconds
+        long startTime; // Timestamp when the entanglement effect began
+        long duration;  // Duration of the entangled state in milliseconds
         
         /**
          * EntangledStatus constructor
-         * @param duration Duration the effect will last
+         * 
+         * @param duration Duration the entanglement effect will persist
          */
         EntangledStatus(long duration) {
             this.startTime = System.currentTimeMillis();
@@ -361,50 +388,117 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
         
         /**
-         * Checks if the entangled effect is still active
-         * @return true if the effect duration hasn't expired
+         * Checks if the entanglement effect is still active
+         * 
+         * @return {@code true} if the entanglement duration hasn't expired
          */
         boolean isActive() {
             return System.currentTimeMillis() - startTime < duration;
         }
     }
 
-    // Board dimensions and tile properties
-    private int rowCount = 21;     // Number of rows on the game board
-    private int columnCount = 19;  // Number of columns on the game board
-    private int tileSize = 32;     // Size of each tile in pixels (square)
-    private int boardWidth = columnCount * tileSize;    // Total board width in pixels
-    private int boardHeight = rowCount * tileSize;      // Total board height in pixels
-
-    // Game entity images
-    private Image wallImage;           // Image for wall tiles
-    private Image blueGhostImage;      // Image for blue ghosts
-    private Image orangeGhostImage;    // Image for orange ghosts
-    private Image pinkGhostImage;      // Image for pink ghosts
-    private Image redGhostImage;       // Image for red ghosts
-    private Image powerFoodPlusImage;  // Image for PowerFoodPlus items
-
-    // Pac-Man directional images
-    private Image pacmanUpImage;    // Pac-Man facing upward
-    private Image pacmanDownImage;  // Pac-Man facing downward
-    private Image pacmanLeftImage;  // Pac-Man facing left
-    private Image pacmanRightImage; // Pac-Man facing right
+    // =========================================================================
+    // GAME BOARD CONFIGURATION
+    // =========================================================================
+    /** Number of rows in the game grid layout */
+    private int rowCount = 21;
     
-    // Special game systems and status trackers
-    private HashSet<Trap> traps; // Collection of currently active traps on the board
-    private HashMap<Block, Integer> pinkGhostShields; // Shield count for each pink ghost
-    private HashMap<Block, Long> redGhostTeleportCooldown; // Teleport ability cooldowns for red ghosts
-    private HashMap<Block, FrozenStatus> frozenEntities; // Frozen status tracking for game entities
-    private HashMap<Block, EntangledStatus> entangledEntities; // Entangled status tracking for game entities
-    private HashMap<Block, Long> ghostRespawnTimers; // Respawn timers for dead ghosts
+    /** Number of columns in the game grid layout */
+    private int columnCount = 19;
     
-    // UI state for displaying active trap effects
-    private String activeTrapEffect = "";         // Currently active trap effect for UI display
-    private long trapEffectStartTime = 0;         // Timestamp when the trap effect started
-    private long trapEffectDuration = 0;          // Duration of the trap effect
+    /** Size of each grid tile (in pixels, square shape) */
+    private int tileSize = 32;
+    
+    /** Total width of the game board (derived from columns × tile size) */
+    private int boardWidth = columnCount * tileSize;
+    
+    /** Total height of the game board (derived from rows × tile size) */
+    private int boardHeight = rowCount * tileSize;
+
+    // =========================================================================
+    // GAME ASSET REFERENCES
+    // =========================================================================
+    /** Visual representation of wall blocks */
+    private Image wallImage;
+    
+    /** Visual representation of blue ghosts */
+    private Image blueGhostImage;
+    
+    /** Visual representation of orange ghosts */
+    private Image orangeGhostImage;
+    
+    /** Visual representation of pink ghosts */
+    private Image pinkGhostImage;
+    
+    /** Visual representation of red ghosts */
+    private Image redGhostImage;
+    
+    /** Visual representation of PowerFoodPlus special items */
+    private Image powerFoodPlusImage;
+
+    // =========================================================================
+    // PAC-MAN DIRECTIONAL SPRITES
+    // =========================================================================
+    /** Pac-Man sprite facing upward */
+    private Image pacmanUpImage;
+    
+    /** Pac-Man sprite facing downward */
+    private Image pacmanDownImage;
+    
+    /** Pac-Man sprite facing left */
+    private Image pacmanLeftImage;
+    
+    /** Pac-Man sprite facing right */
+    private Image pacmanRightImage;
+    
+    // =========================================================================
+    // GAME SYSTEM COLLECTIONS
+    // =========================================================================
+    /** Collection of all currently active traps on the board */
+    private HashSet<Trap> traps;
+    
+    /** Map tracking shield counts for pink ghosts (each ghost has unique shield protection) */
+    private HashMap<Block, Integer> pinkGhostShields;
+    
+    /** Teleport ability cooldown timers for red ghosts (prevents spamming) */
+    private HashMap<Block, Long> redGhostTeleportCooldown;
+    
+    /** Frozen status tracking: Maps entities to their active frozen effects */
+    private HashMap<Block, FrozenStatus> frozenEntities;
+    
+    /** Entangled status tracking: Maps entities to their active entanglement effects */
+    private HashMap<Block, EntangledStatus> entangledEntities;
+    
+    /** Respawn timers for dead ghosts: Controls when ghosts reappear after being eaten */
+    private HashMap<Block, Long> ghostRespawnTimers;
+    
+    // =========================================================================
+    // USER INTERFACE TRACKERS
+    // =========================================================================
+    /** Current active trap effect identifier for UI display */
+    private String activeTrapEffect = "";
+    
+    /** Timestamp when the current trap effect started (for countdown calculations) */
+    private long trapEffectStartTime = 0;
+    
+    /** Duration of the current trap effect (in milliseconds) */
+    private long trapEffectDuration = 0;
 
     /**
      * Game board tile map definition
+     * Map legend:
+     * - 'X': Wall tile
+     * - 'O': Skip tile (no collision, no points)
+     * - 'P': Pac-Man starting position
+     * - ' ': Regular food pellet
+     * - 'b': Blue ghost starting position
+     * - 'o': Orange ghost starting position
+     * - 'p': Pink ghost starting position
+     * - 'r': Red ghost starting position
+     */
+    /**
+     * Game board tile map definition
+     * 修改：每种鬼只保留一个起始位置，移除重复的鬼标记
      * Map legend:
      * - 'X': Wall tile
      * - 'O': Skip tile (no collision, no points)
@@ -424,9 +518,9 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "X    X       X    X",
         "XXXX XXXX XXXX XXXX",
         "OOOX X       X XOOO",
-        "XXXX X XXrXX X XXXX",
-        "X      bpo        X",
-        "XXXX X XXXXX X XXXX",
+        "XXXX X XXrXX X XXXXX",
+        "      b p o        ",
+        "XXXX X XXXXX X XXXXX",
         "OOOX X       X XOOO",
         "XXXX X XXXXX X XXXX",
         "X        X        X",
@@ -439,30 +533,69 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         "XXXXXXXXXXXXXXXXXXX" 
     };
 
-    // Game entity collections
-    HashSet<Block> walls;               // Collection of all wall blocks
-    HashSet<Block> foods;               // Collection of all food pellets
-    HashSet<Block> ghosts;              // Collection of all ghost entities
-    HashSet<PowerFoodPlus> powerFoodsPlus; // Collection of all PowerFoodPlus items
-    HashSet<PacmanClone> pacmanClones; // Collection of Pac-Man clones
-    Block pacman;                       // Main Pac-Man player entity
+    // =========================================================================
+    // GAME ENTITY COLLECTIONS
+    // =========================================================================
+    /** Collection of all wall blocks in the game */
+    HashSet<Block> walls;
+    
+    /** Collection of all food pellets in the game */
+    HashSet<Block> foods;
+    
+    /** Collection of all ghost entities in the game */
+    HashSet<Block> ghosts;
+    
+    /** Collection of all PowerFoodPlus special items in the game */
+    HashSet<PowerFoodPlus> powerFoodsPlus;
+    
+    /** Collection of Pac-Man clone entities created using special skills */
+    HashSet<PacmanClone> pacmanClones;
+    
+    /** Main player-controlled Pac-Man entity */
+    Block pacman;
 
-    // Game state variables
-    int powerFoodPlusSkillCount = 0;   // Number of special skills currently available to the player
-    HashMap<Block, GhostScaredStatus> ghostScaredMap; // Tracks scared status of individual ghosts
-    HashSet<Block> deadGhosts;         // Collection of ghosts that are currently dead and need respawn
+    // =========================================================================
+    // GAME STATE MANAGEMENT
+    // =========================================================================
+    /** Number of special PowerFoodPlus skills available to the player */
+    int powerFoodPlusSkillCount = 0;
+    
+    /** Tracks scared status of individual ghosts (each ghost has unique scared duration) */
+    HashMap<Block, GhostScaredStatus> ghostScaredMap;
+    
+    /** Collection of ghosts that are currently dead and need respawn */
+    HashSet<Block> deadGhosts;
 
-    // Game control variables
-    Timer gameLoop;                    // Main game loop timer
-    char[] directions = {'U', 'D', 'L', 'R'}; // Valid movement directions (Up, Down, Left, Right)
-    Random random = new Random();      // Random number generator for various game elements
-    int score = 0;                     // Player's current score
-    int lives = 3;                     // Number of lives the player has remaining
-    boolean gameOver = false;          // Tracks if the game has ended (player lost)
-    boolean gameStarted = false;       // Tracks if the game has started
+    // =========================================================================
+    // CORE GAME SYSTEM VARIABLES
+    // =========================================================================
+    /** Main game loop timer controlling frame updates */
+    Timer gameLoop;
+    
+    /** Valid movement directions for game entities (Up, Down, Left, Right) */
+    char[] directions = {'U', 'D', 'L', 'R'};
+    
+    /** Random number generator for various game elements (e.g., ghost movement, teleportation) */
+    Random random = new Random();
+    
+    /** Player's current score earned through eating food and ghosts */
+    int score = 0;
+    
+    /** Number of lives remaining for the player (game ends at 0) */
+    int lives = 3;
+    
+    /** Tracks if the game has ended (player lost all lives) */
+    boolean gameOver = false;
+    
+    /** Tracks if the game has been started (player pressed space) */
+    boolean gameStarted = false;
 
     /**
-     * PacMan constructor - initializes the game
+     * PacMan constructor - Initializes and sets up the game environment
+     * 
+     * This constructor sets up the game window dimensions, loads all necessary
+     * game assets (images), initializes the game board from the tile map, and
+     * starts the main game loop timer running at 20 frames per second.
      */
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -470,7 +603,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
         setFocusable(true);
 
-        // Load game entity images from files
+        // Load game entity images from resource files
         wallImage = new ImageIcon(getClass().getResource("./wall.png")).getImage();
         blueGhostImage = new ImageIcon(getClass().getResource("./blueGhost.png")).getImage();
         orangeGhostImage = new ImageIcon(getClass().getResource("./orangeGhost.png")).getImage();
@@ -484,22 +617,25 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanRightImage = new ImageIcon(getClass().getResource("./pacmanRight.png")).getImage();
 
         loadMap();
-        // Set initial random directions for all ghosts
+        
+        // Set initial random movement directions for all ghost entities
         for (Block ghost : ghosts) {
             char newDirection = directions[random.nextInt(4)];
             ghost.updateDirection(newDirection);
         }
-        // Initialize game loop timer to run at 20 frames per second
-        gameLoop = new Timer(50, this); // 20 FPS = 1000ms / 50ms per frame
+        
+        // Initialize main game loop timer to run at 20 frames per second (50ms per frame)
+        gameLoop = new Timer(50, this);
         gameLoop.start();
     }
 
     /**
-     * Loads the game map from the tileMap array and initializes all game entities
+     * Loads and initializes the entire game map from the tileMap array
      * 
-     * This method processes each character in the tileMap array and creates the
-     * corresponding game entities. It also initializes special game systems
-     * and collections.
+     * This method processes each character in the tileMap array to create all
+     * necessary game entities (walls, ghosts, food, Pac-Man, etc.). It also
+     * initializes all special game systems and collections required for
+     * gameplay mechanics.
      */
     public void loadMap() {
         walls = new HashSet<Block>();
@@ -510,7 +646,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         ghostScaredMap = new HashMap<Block, GhostScaredStatus>();
         powerFoodPlusSkillCount = 0;
         
-        // Initialize special ghost-related variables and collections
+        // Initialize special game system collections
         traps = new HashSet<Trap>();
         pinkGhostShields = new HashMap<Block, Integer>();
         redGhostTeleportCooldown = new HashMap<Block, Long>();
@@ -518,7 +654,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         entangledEntities = new HashMap<Block, EntangledStatus>();
         ghostRespawnTimers = new HashMap<Block, Long>();
 
-        // Process each tile in the tileMap
+        // Process each tile in the tileMap grid
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
                 String row = tileMap[r];
@@ -527,7 +663,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 int x = c * tileSize;
                 int y = r * tileSize;
 
-                if (tileMapChar == 'X') { // Wall tile
+                if (tileMapChar == 'X') { // Wall tile: solid obstacle that blocks movement
                     Block wall = new Block(wallImage, x, y, tileSize, tileSize);
                     walls.add(wall);
                 }
@@ -539,10 +675,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     Block ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
                     ghosts.add(ghost);
                 }
-                else if (tileMapChar == 'p') { // Pink ghost starting position
+                else if (tileMapChar == 'p') { // Pink ghost starting position (has shields)
                     Block ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
                     ghosts.add(ghost);
-                    pinkGhostShields.put(ghost, 3); // Pink ghosts start with 3 shields
+                    pinkGhostShields.put(ghost, 3); // Pink ghosts start with 3 protective shields
                 }
                 else if (tileMapChar == 'r') { // Red ghost starting position
                     Block ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
@@ -551,7 +687,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 else if (tileMapChar == 'P') { // Pac-Man starting position
                     pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
                 }
-                else if (tileMapChar == ' ') { // Regular food pellet
+                else if (tileMapChar == ' ') { // Regular food pellet: 10 points each
                     Block food = new Block(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
                 }
@@ -706,16 +842,17 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
         
-        // Draw operation HUD in top-left corner
+        // Draw operation HUD at top-left corner
         g.setFont(new Font("Arial", Font.PLAIN, 12));
         g.drawString("Controls:", tileSize/2, tileSize + tileSize/2);
         g.drawString("Arrow Keys: Move", tileSize/2, tileSize + tileSize);
         g.drawString("Q: Fire Clone", tileSize/2, tileSize + tileSize + tileSize/2);
+        g.drawString("V: Break Ice", tileSize/2, tileSize + tileSize*2);
         
-        // Draw skill HUD
+        // Draw skill HUD at extreme top-right corner 
         g.setColor(Color.GREEN);
         g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Skills: " + powerFoodPlusSkillCount, tileSize/2, tileSize + tileSize*2);
+        g.drawString("Skills: " + powerFoodPlusSkillCount, boardWidth - tileSize*2, tileSize/2);
 
         // Draw active trap effects in center of screen
         if (activeTrapEffect != "") {
@@ -828,13 +965,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
-        // Portal system: middle row, left and right ends
-        if (pacman.y >= tileSize*8 && pacman.y <= tileSize*10) { // Middle area
-            if (pacman.x <= 0) { // Left portal - wrap to right
-                pacman.x = boardWidth - pacman.width;
-            } else if (pacman.x + pacman.width >= boardWidth) { // Right portal - wrap to left
-                pacman.x = 0;
-            }
+        // Portal system: Allow left-right wrap across entire map height
+        if (pacman.x <= 0) { // Left portal - wrap to right
+            pacman.x = boardWidth - pacman.width;
+        } else if (pacman.x + pacman.width >= boardWidth) { // Right portal - wrap to left
+            pacman.x = 0;
         }
 
         // Check wall collisions
@@ -882,6 +1017,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 } else {
                     // Pac-Man collided with normal ghost - lose a life
                     lives -= 1;
+                    // Clear all negative status effects when losing a life
+                    frozenEntities.remove(pacman);
+                    entangledEntities.remove(pacman);
+                    activeTrapEffect = "";
                     if (lives == 0) {
                         gameOver = true; // Game ends if no lives remain
                         return;
@@ -923,31 +1062,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
             }
             
-            // Apply speed modifiers from status effects
-            double speedMultiplier = 1.0; // Default speed multiplier
-            // Clean up inactive frozen status for ghost
-            if (frozenEntities.containsKey(ghost) && !frozenEntities.get(ghost).isActive()) {
-                frozenEntities.remove(ghost);
-            }
-            // Apply frozen status effect
-            if (frozenEntities.containsKey(ghost) && frozenEntities.get(ghost).isActive()) {
-                speedMultiplier = frozenEntities.get(ghost).getSpeedMultiplier();
-            }
+            // Traps no longer affect ghosts, so we skip any status effect checks for ghosts
+            // This simplifies ghost movement logic and ensures traps only target player
             
-            // Clean up inactive entangled status for ghost
-            if (entangledEntities.containsKey(ghost) && !entangledEntities.get(ghost).isActive()) {
-                entangledEntities.remove(ghost);
-            }
-            // Apply entanglement effect to ghost (completely stops movement)
-            if (entangledEntities.containsKey(ghost) && entangledEntities.get(ghost).isActive()) {
-                ghost.velocityX = 0;
-                ghost.velocityY = 0;
-                continue; // Skip further movement logic for this frame
-            }
-            
-            // Move ghost with applied speed modifiers
-            ghost.x += (int)(ghost.velocityX * speedMultiplier);
-            ghost.y += (int)(ghost.velocityY * speedMultiplier);
+        // Move ghost - traps no longer affect ghosts, so move at normal speed
+            ghost.x += ghost.velocityX;
+            ghost.y += ghost.velocityY;
             
             // Check ghost wall collisions and change direction on impact
             for (Block wall : walls) {
@@ -955,8 +1075,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                     (ghost.x <= 0 && !(ghost.y >= tileSize*8 && ghost.y <= tileSize*10)) || 
                     (ghost.x + ghost.width >= boardWidth && !(ghost.y >= tileSize*8 && ghost.y <= tileSize*10))) {
                     // Reverse ghost movement due to collision
-                    ghost.x -= (int)(ghost.velocityX * speedMultiplier);
-                    ghost.y -= (int)(ghost.velocityY * speedMultiplier);
+                    ghost.x -= ghost.velocityX;
+                    ghost.y -= ghost.velocityY;
                     // Set random new direction to navigate around obstacle
                     char newDirection = directions[random.nextInt(4)];
                     ghost.updateDirection(newDirection);
@@ -1028,7 +1148,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             ghosts.remove(ghostToRemove);
         }
         
-        // Handle trap effects
+        // Handle trap effects - only apply to player, not ghosts
         for (Trap trap : traps) {
             if (!trap.isActive()) continue;
             
@@ -1044,38 +1164,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                         trapEffectDuration = 3000;
                     }
                 } else if (trap.type.equals("ice")) {
-                    // Ice trap: freeze pacman for 7 seconds
+                    // Ice shadow trap: freeze pacman for 10 seconds - WILL DIE IF NOT BROKEN!
                     if (!frozenEntities.containsKey(pacman) || !frozenEntities.get(pacman).isActive()) {
-                        FrozenStatus frozen = new FrozenStatus(7000);
+                        FrozenStatus frozen = new FrozenStatus(10000);
                         frozenEntities.put(pacman, frozen);
-                        activeTrapEffect = "FROZEN!";
+                        activeTrapEffect = "FROZEN! (Press V to Break)";
                         trapEffectStartTime = System.currentTimeMillis();
-                        trapEffectDuration = 7000;
+                        trapEffectDuration = 10000;
                     }
                 }
             }
-            
-            // Check if ghosts are in trap
-            for (Block ghost : ghosts) {
-                if (collision(ghost, trap)) {
-                    if (trap.type.equals("spider")) {
-                        // Spider trap: entangle ghost for 3 seconds
-                        if (!entangledEntities.containsKey(ghost) || !entangledEntities.get(ghost).isActive()) {
-                            EntangledStatus entangled = new EntangledStatus(3000);
-                            entangledEntities.put(ghost, entangled);
-                        }
-                    } else if (trap.type.equals("ice")) {
-                        // Ice trap: freeze ghost for 7 seconds
-                        if (!frozenEntities.containsKey(ghost) || !frozenEntities.get(ghost).isActive()) {
-                            FrozenStatus frozen = new FrozenStatus(7000);
-                            frozenEntities.put(ghost, frozen);
-                        }
-                    }
-                }
-            }
+            // No more trap effects for ghosts - traps only affect player
         }
         
-        // Clean up inactive trap statuses for pacman to prevent permanent movement issues
+        // Clean up inactive trap statuses for pacman only - traps no longer affect ghosts
         if (entangledEntities.containsKey(pacman) && !entangledEntities.get(pacman).isActive()) {
             entangledEntities.remove(pacman);
         }
@@ -1084,13 +1186,30 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             // Reset pacman's velocity after frozen status ends to restore normal movement
             pacman.updateVelocity();
         }
-        // Clean up inactive trap statuses for ghosts
+        // Clean up ghost status tracking maps (traps no longer apply to ghosts)
         for (Block ghost : ghosts) {
-            if (entangledEntities.containsKey(ghost) && !entangledEntities.get(ghost).isActive()) {
-                entangledEntities.remove(ghost);
-            }
-            if (frozenEntities.containsKey(ghost) && !frozenEntities.get(ghost).isActive()) {
-                frozenEntities.remove(ghost);
+            frozenEntities.remove(ghost);
+            entangledEntities.remove(ghost);
+        }
+        
+        // Check if frozen effect duration has expired - if so, player dies
+        if (frozenEntities.containsKey(pacman) && frozenEntities.get(pacman).isActive()) {
+            FrozenStatus frozenStatus = frozenEntities.get(pacman);
+            if (System.currentTimeMillis() - frozenStatus.startTime >= frozenStatus.duration) {
+                // Frozen duration expired - player dies immediately
+                lives--;
+                frozenEntities.remove(pacman);
+                entangledEntities.remove(pacman);
+                activeTrapEffect = "";
+                // Reset pacman position
+                pacman.reset();
+                pacman.updateVelocity();
+                // Reset ghosts by calling resetPositions() which handles ghost reset properly
+                resetPositions();
+                // Check for game over
+                if (lives <= 0) {
+                    gameOver = true;
+                }
             }
         }
         
@@ -1099,29 +1218,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             // Stop pacman movement completely
             pacman.velocityX = 0;
             pacman.velocityY = 0;
+        } else if (frozenEntities.containsKey(pacman) && frozenEntities.get(pacman).isActive()) {
+            // Frozen state: NO speed reduction! Player can move normally
+            // Just ensure normal velocity is set
+            pacman.updateVelocity();
         } else {
-            // Apply frozen effect only if not entangled
-            if (frozenEntities.containsKey(pacman) && frozenEntities.get(pacman).isActive()) {
-                // Reduce pacman speed by 50%
-                double speedMultiplier = frozenEntities.get(pacman).getSpeedMultiplier();
-                // Save current direction to restore after speed modification
-                char currentDirection = pacman.direction;
-                // Calculate new velocity
-                int baseVelocity = tileSize / 4;
-                if (currentDirection == 'U') {
-                    pacman.velocityX = 0;
-                    pacman.velocityY = (int)(-baseVelocity * speedMultiplier);
-                } else if (currentDirection == 'D') {
-                    pacman.velocityX = 0;
-                    pacman.velocityY = (int)(baseVelocity * speedMultiplier);
-                } else if (currentDirection == 'L') {
-                    pacman.velocityX = (int)(-baseVelocity * speedMultiplier);
-                    pacman.velocityY = 0;
-                } else if (currentDirection == 'R') {
-                    pacman.velocityX = (int)(baseVelocity * speedMultiplier);
-                    pacman.velocityY = 0;
-                }
-            }
+            // Normal state: ensure velocity is up to date
+            pacman.updateVelocity();
         }
         
         // Update trap effect UI
@@ -1164,6 +1267,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    /**
+     * Detects collision between a PacmanClone and a Block entity
+     * 
+     * @param clone The PacmanClone to check for collision
+     * @param block The Block entity (wall, ghost, or food) to check against
+     * @return {@code true} if a collision occurs, {@code false} otherwise
+     */
     private boolean collision(PacmanClone clone, Block block) {
         return  clone.x < block.x + block.width &&
                 clone.x + clone.width > block.x &&
@@ -1171,6 +1281,13 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 clone.y + clone.height > block.y;
     }
 
+    /**
+     * Detects collision between a Block and a PowerFoodPlus item
+     * 
+     * @param block The Block entity (typically Pac-Man) to check for collision
+     * @param plus The PowerFoodPlus power-up item
+     * @return {@code true} if a collision occurs, {@code false} otherwise
+     */
     private boolean collision(Block block, PowerFoodPlus plus) {
         return  block.x < plus.x + plus.width &&
                 block.x + block.width > plus.x &&
@@ -1178,6 +1295,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 block.y + block.height > plus.y;
     }
 
+    /**
+     * Detects collision between two Block entities
+     * This is the main collision detection method used for most game entities
+     * 
+     * @param a First Block entity
+     * @param b Second Block entity
+     * @return {@code true} if a collision occurs, {@code false} otherwise
+     */
     public boolean collision(Block a, Block b) {
         return  a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
@@ -1208,12 +1333,22 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         return collision(block, trap);
     }
 
+    /**
+     * Resets all game entities to their initial starting positions
+     * 
+     * This method is called when Pac-Man loses a life or the game is restarted. It clears all
+     * status effects and resets entity positions, scores, and abilities to their default state.
+     */
     public void resetPositions() {
         pacman.reset();
         pacman.velocityX = 0;
         pacman.velocityY = 0;
         pacmanClones.clear();
         powerFoodPlusSkillCount = 0;
+        // Clear all negative effects when resetting positions (e.g., after death)
+        frozenEntities.remove(pacman);
+        entangledEntities.remove(pacman);
+        activeTrapEffect = "";
         
         for (Block ghost : ghosts) {
             ghost.reset();
@@ -1223,6 +1358,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    /**
+     * Main game loop action handler
+     * 
+     * This method is called periodically (20 times per second) by the Swing Timer to update game
+     * state, process user input, move entities, detect collisions, and repaint the game screen.
+     * 
+     * @param e ActionEvent object representing the timer event
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
@@ -1258,12 +1401,50 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    /**
+     * Empty implementation of keyTyped event handler
+     * 
+     * This event is not used in the current implementation since all important key interactions
+     * are handled by keyPressed and keyReleased events.
+     * 
+     * @param e KeyEvent object representing the typed key
+     */
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+        // Not used in this implementation
+    }
 
+    /**
+     * Handles key press events
+     * 
+     * Currently used exclusively for breaking ice traps with the 'V' key.
+     * When Pac-Man is frozen and the player presses 'V', the ice effect is removed.
+     * 
+     * @param e KeyEvent object representing the pressed key
+     */
     @Override
-    public void keyPressed(KeyEvent e) {}
-
+    public void keyPressed(KeyEvent e) {
+        // Handle V key for breaking ice
+        if (e.getKeyCode() == KeyEvent.VK_V) {
+            if (frozenEntities.containsKey(pacman) && frozenEntities.get(pacman).isActive()) {
+                frozenEntities.remove(pacman);
+                activeTrapEffect = "";
+                pacman.updateVelocity(); // Ensure normal movement resumes immediately
+            }
+        }
+    }
+    
+    /**
+     * Handles key release events for primary game controls
+     * 
+     * This is the main input handler for the game, responsible for:
+     * - Starting the game (Space bar)
+     * - Restarting after game over
+     * - Pac-Man movement (arrow keys)
+     * - Activating special abilities (Q key for PowerFoodPlus skill)
+     * 
+     * @param e KeyEvent object representing the released key
+     */
     @Override
     public void keyReleased(KeyEvent e) {
         // Handle game start with space key
@@ -1279,6 +1460,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             resetPositions();
             lives = 3;
             score = 0;
+            // Clear all remaining status effects when restarting
+            frozenEntities.clear();
+            entangledEntities.clear();
+            activeTrapEffect = "";
             gameOver = false;
             gameLoop.start();
         }
@@ -1306,46 +1491,73 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             return; // 阻止其他按键处理
         }
         
-        // 正常移动输入处理
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
-            pacman.updateDirection('U');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            pacman.updateDirection('D');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            pacman.updateDirection('L');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            pacman.updateDirection('R');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_Q && powerFoodPlusSkillCount > 0) {
-            Image cloneImage = null;
-            if (pacman.direction == 'U') {
-                cloneImage = pacmanUpImage;
-            } else if (pacman.direction == 'D') {
-                cloneImage = pacmanDownImage;
-            } else if (pacman.direction == 'L') {
-                cloneImage = pacmanLeftImage;
-            } else if (pacman.direction == 'R') {
-                cloneImage = pacmanRightImage;
+        // Frozen state: player can still move and turn, so allow movement keys
+        boolean isFrozen = frozenEntities.containsKey(pacman) && frozenEntities.get(pacman).isActive();
+        if (isFrozen) {
+            // Allow movement keys and skill key even while frozen
+            if (e.getKeyCode() == KeyEvent.VK_UP) {
+                pacman.updateDirection('U');
+            } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                pacman.updateDirection('D');
+            } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                pacman.updateDirection('L');
+            } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                pacman.updateDirection('R');
+            } else if (e.getKeyCode() == KeyEvent.VK_Q && powerFoodPlusSkillCount > 0) {
+                Image cloneImage = null;
+                if (pacman.direction == 'U') {
+                    cloneImage = pacmanUpImage;
+                } else if (pacman.direction == 'D') {
+                    cloneImage = pacmanDownImage;
+                } else if (pacman.direction == 'L') {
+                    cloneImage = pacmanLeftImage;
+                } else if (pacman.direction == 'R') {
+                    cloneImage = pacmanRightImage;
+                }
+                PacmanClone clone = new PacmanClone(pacman.x, pacman.y, pacman.direction, cloneImage);
+                pacmanClones.add(clone);
+                powerFoodPlusSkillCount--;
             }
-            
-            PacmanClone clone = new PacmanClone(pacman.x, pacman.y, pacman.direction, cloneImage);
-            pacmanClones.add(clone);
-            powerFoodPlusSkillCount--; // Reduce skill count when used
+        } else {
+            // 正常移动输入处理
+            if (e.getKeyCode() == KeyEvent.VK_UP) {
+                pacman.updateDirection('U');
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                pacman.updateDirection('D');
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                pacman.updateDirection('L');
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                pacman.updateDirection('R');
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_Q && powerFoodPlusSkillCount > 0) {
+                Image cloneImage = null;
+                if (pacman.direction == 'U') {
+                    cloneImage = pacmanUpImage;
+                } else if (pacman.direction == 'D') {
+                    cloneImage = pacmanDownImage;
+                } else if (pacman.direction == 'L') {
+                    cloneImage = pacmanLeftImage;
+                } else if (pacman.direction == 'R') {
+                    cloneImage = pacmanRightImage;
+                }
+                
+                PacmanClone clone = new PacmanClone(pacman.x, pacman.y, pacman.direction, cloneImage);
+                pacmanClones.add(clone);
+                powerFoodPlusSkillCount--; // Reduce skill count when used
+            }
         }
-
+        
+        // Update Pac-Man image based on direction regardless of frozen state
         if (pacman.direction == 'U') {
             pacman.image = pacmanUpImage;
-        }
-        else if (pacman.direction == 'D') {
+        } else if (pacman.direction == 'D') {
             pacman.image = pacmanDownImage;
-        }
-        else if (pacman.direction == 'L') {
+        } else if (pacman.direction == 'L') {
             pacman.image = pacmanLeftImage;
-        }
-        else if (pacman.direction == 'R') {
+        } else if (pacman.direction == 'R') {
             pacman.image = pacmanRightImage;
         }
     }
